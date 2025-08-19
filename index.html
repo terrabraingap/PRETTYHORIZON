@@ -1,0 +1,2045 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용 시뮬레이터</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <style>
+/* --- Root Variables --- */
+:root {
+    --background-color: #f4f6f9;
+    --panel-bg: #ffffff;
+    --panel-border: #e0e6ed;
+    --text-primary: #2c3e50;
+    --text-secondary: #8a95a5;
+    --header-bg: #2c3e50;
+    --accent-primary: #3498db;
+    --accent-primary-dark: #2980b9;
+    --accent-secondary: #2ecc71;
+    --accent-secondary-dark: #27ae60;
+    --input-bg: #ffffff;
+    --input-border: #dce1e6;
+    --shadow: rgba(44, 62, 80, 0.1);
+    --inactive-tab-bg: #5f7a95;
+
+    --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, 'Noto Sans KR', sans-serif;
+    --font-secondary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, 'Noto Sans KR', sans-serif;
+}
+
+body.dark-mode {
+    --background-color: #1c2128;
+    --panel-bg: #2d333b;
+    --panel-border: #444c56;
+    --text-primary: #e6edf3;
+    --text-secondary: #909dab;
+    --header-bg: #2d333b;
+    --accent-primary: #58a6ff;
+    --accent-primary-dark: #388bfd;
+    --accent-secondary: #34d399;
+    --accent-secondary-dark: #10b981;
+    --input-bg: #22272e;
+    --input-border: #444c56;
+    --shadow: rgba(0, 0, 0, 0.4);
+    --inactive-tab-bg: #444c56;
+}
+
+/* --- Global Resets & Base Styles --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* --- Main Layout --- */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.content-wrapper {
+    width: 100%;
+}
+
+/* --- App Header --- */
+.app-header {
+    width: 100%;
+    background-color: var(--header-bg);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 8px 32px var(--shadow);
+    position: relative;
+    transition: background-color 0.3s;
+}
+.app-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.version-info {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    text-align: right;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+}
+
+body.dark-mode .version-info {
+    color: var(--text-secondary);
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    background: var(--inactive-tab-bg);
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+    background-color: var(--accent-primary);
+}
+.theme-toggle:active {
+    transform: scale(0.97);
+}
+.theme-toggle .sun-icon, .theme-toggle .moon-icon { display: none; }
+body:not(.dark-mode) .theme-toggle .moon-icon { display: block; }
+body.dark-mode .theme-toggle .sun-icon { display: block; }
+
+body.dark-mode .theme-toggle {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--panel-border);
+}
+body.dark-mode .theme-toggle:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+
+/* --- Sheet Navigation (Tabs) --- */
+.sheet-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.sheet-nav button {
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-secondary);
+    background-color: var(--inactive-tab-bg);
+    color: #f0f4f8;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.sheet-nav button:hover {
+    opacity: 0.9;
+}
+.sheet-nav button.active {
+    background-color: var(--accent-primary);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(52, 152, 219, 0.4);
+}
+body.dark-mode .sheet-nav button.active {
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.4);
+}
+
+/* --- Sheet Content --- */
+.sheet-content {
+    width: 100%;
+}
+#simulator-sheet {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+/* --- Panels --- */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow);
+    padding: 2rem;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.panel-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--accent-primary);
+    padding-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.panel-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.settings-panel {
+    flex: 1;
+    min-width: 320px;
+    max-width: 450px;
+}
+
+.results-panel {
+    flex: 2;
+    min-width: 400px;
+}
+
+/* --- Forms & Inputs --- */
+.settings-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+.input-group .input-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.input-description.krw-preview {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-align: right;
+    min-height: 1.2em;
+    margin-top: 0.5rem;
+}
+
+.input-warning {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e74c3c;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid #e74c3c;
+}
+
+body.dark-mode .input-warning {
+    color: #ff8989;
+    background-color: rgba(231, 76, 60, 0.15);
+    border-left-color: #ff8989;
+}
+
+
+.quick-select-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.quick-select-group button {
+    flex-grow: 1;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: var(--font-secondary);
+    background-color: var(--input-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.quick-select-group button:hover {
+    background-color: #eaf5fc;
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.quick-select-group button.active-preset {
+    background-color: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    font-weight: 700;
+}
+
+.quick-select-group button:active {
+    transform: scale(0.97);
+}
+
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
+}
+.input-wrapper:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+body.dark-mode .input-wrapper:focus-within {
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
+}
+.input-wrapper input, .input-wrapper select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    -moz-appearance: textfield;
+}
+.input-wrapper input[type="number"] {
+    text-align: right;
+}
+.input-wrapper select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    padding-right: 2.5rem;
+}
+.input-wrapper .select-arrow {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 0 0.75rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+}
+.input-wrapper input:read-only, .input-wrapper input:disabled {
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    background-color: #f0f2f5;
+}
+.input-wrapper input::-webkit-outer-spin-button,
+.input-wrapper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.input-wrapper input:focus, .input-wrapper select:focus {
+    outline: none;
+}
+.input-wrapper span {
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    background: #f8f9fa;
+    border-left: 1px solid var(--input-border);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#simulator-sheet .settings-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+#simulator-sheet .settings-form .input-group:first-child,
+#simulator-sheet .settings-form .input-group:nth-child(2) {
+     grid-column: 1 / -1;
+}
+
+.pity-settings {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--input-border);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.pity-label-text {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.pity-recommendation {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.pity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.pity-settings .input-wrapper {
+    width: 120px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+    cursor: pointer;
+}
+.toggle-switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 28px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--accent-primary); }
+input:checked + .slider:before { transform: translateX(22px); }
+
+#calculate-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: var(--font-secondary);
+    color: #fff;
+    background: var(--accent-secondary);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s, opacity 0.3s;
+}
+#calculate-btn:hover:not(:disabled) { background: var(--accent-secondary-dark); }
+#calculate-btn:active:not(:disabled) { transform: scale(0.98); }
+#calculate-btn:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* --- Price Settings Panel --- */
+.price-settings-panel { max-width: 650px; margin: 0 auto; }
+.price-settings-panel .settings-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2rem;
+}
+.price-settings-panel .form-spanning-group {
+    grid-column: 1 / -1;
+}
+.form-divider { border: none; border-top: 1px solid var(--panel-border); margin: 0; }
+
+#confidential-cost-custom-wrapper input[type="number"] {
+    flex-grow: 1;
+    width: 1%;
+}
+.select-unit-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    border-left: 1px solid var(--input-border);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.select-unit-wrapper select {
+    background: transparent;
+    border: none;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    width: auto;
+    padding-right: 2.5rem;
+}
+.select-unit-wrapper .select-arrow {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 0 0.75rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+}
+
+.price-settings-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+.price-settings-actions button {
+    flex-grow: 1; padding: 0.9rem; font-size: 1.05rem; font-weight: 700;
+    font-family: var(--font-secondary); border: none; border-radius: 10px; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.price-settings-actions button.primary { background-color: var(--accent-secondary); color: white; }
+.price-settings-actions button.primary:hover:not(:disabled) { background-color: var(--accent-secondary-dark); }
+.price-settings-actions button:disabled { opacity: 0.7; cursor: not-allowed; }
+.price-settings-actions button.secondary { background: #f8f9fa; color: var(--text-primary); border: 1px solid var(--input-border); }
+.price-settings-actions button.secondary:hover { background-color: #f1f3f5; }
+
+#reset-settings-btn {
+    background-color: #e74c3c;
+    color: white;
+    border-color: transparent;
+}
+#reset-settings-btn:hover {
+    background-color: #c0392b;
+}
+
+.credits {
+    text-align: right;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* --- Results Panel --- */
+.hidden { display: none !important; }
+
+#execution-time {
+    font-size: 0.85rem; color: var(--text-secondary);
+    background-color: #f8f9fa; padding: 0.3rem 0.6rem; border-radius: 6px;
+    border: 1px solid var(--input-border);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.results-container { display: flex; flex-direction: column; gap: 1rem; }
+.result-card {
+    background-color: #fdfdfd; border: 1px solid var(--panel-border);
+    border-radius: 10px; overflow-x: auto;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.result-card-header {
+    padding: 0.75rem 1.25rem; font-size: 1.1rem; font-weight: 600;
+    color: var(--text-primary); background-color: #f8f9fa;
+    border-bottom: 1px solid var(--panel-border);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.result-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.result-table th, .result-table td {
+    padding: 0.8rem 1.25rem; text-align: left;
+    border-bottom: 1px solid var(--panel-border);
+    transition: border-color 0.3s;
+}
+.result-table thead th {
+    font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;
+    background-color: #fcfdfe;
+    transition: background-color 0.3s;
+}
+.result-table tr:last-child td { border-bottom: none; }
+.result-table td:nth-child(n+2) {
+    text-align: right;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-weight: 600;
+}
+.result-table td:nth-child(1) { font-weight: 500; }
+
+.progress-cell { position: relative; padding-right: 1.25rem !important; min-width: 120px; }
+.progress-cell > div:first-child { position: relative; z-index: 2; }
+.progress-bar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+.progress-fill { height: 100%; transition: width 0.5s ease-in-out, background-color 0.3s, opacity 0.3s; }
+.progress-fill.exact { background-color: var(--accent-secondary); opacity: 0.2; }
+.progress-fill.cumulative { background-color: var(--accent-primary); opacity: 0.2; }
+
+
+/* --- Analyzer Panel --- */
+.analyzer-panel { max-width: 800px; margin: 0 auto; }
+.analyzer-form-container { display: flex; flex-direction: column; gap: 1.5rem; }
+.analyzer-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    font-size: 1.2rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--input-border);
+}
+.analyzer-sentence span { color: var(--text-secondary); }
+.analyzer-sentence .input-wrapper {
+    width: 120px;
+}
+.analyzer-sentence .input-wrapper input {
+    text-align: right;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+}
+
+#analyze-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: var(--font-secondary);
+    color: #fff;
+    background: var(--accent-secondary);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#analyze-btn:hover:not(:disabled) { background: var(--accent-secondary-dark); }
+#analyze-btn:active:not(:disabled) { transform: scale(0.98); }
+#analyze-btn:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+#analyzer-results-area { margin-top: 2rem; }
+#analyzer-chart-container {
+    background-color: #34495e;
+    padding: 2rem 1rem 1.5rem 1rem;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 250px;
+    box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
+}
+.analyzer-chart {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+}
+.chart-bar {
+    flex: 1;
+    max-width: 20px;
+    background-color: #95a5a6;
+    border-radius: 3px 3px 0 0;
+    transition: background-color 0.3s, transform 0.2s ease-out;
+    transform-origin: bottom;
+    cursor: pointer;
+}
+.chart-bar:hover {
+    transform: scaleY(1.05);
+    background-color: #ecf0f1;
+}
+.chart-bar.highlight {
+    background-color: var(--accent-secondary);
+}
+.chart-bar.highlight:hover {
+    background-color: #55ef9e;
+}
+
+#analyzer-result-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .analyzer-sentence {
+    background-color: var(--input-bg);
+}
+body.dark-mode .analyzer-sentence .input-wrapper input {
+    color: var(--text-primary);
+}
+body.dark-mode #analyzer-chart-container {
+    background-color: #242930;
+}
+body.dark-mode .chart-bar {
+    background-color: #566573;
+}
+body.dark-mode .chart-bar:hover {
+    background-color: #909dab;
+}
+body.dark-mode .chart-bar.highlight {
+    background-color: var(--accent-secondary);
+}
+body.dark-mode .chart-bar.highlight:hover {
+    background-color: #55ef9e;
+}
+
+
+
+/* --- Loader --- */
+.loader-container { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 100%; min-height: 200px; }
+.dot-loader {
+    width: 12px; height: 12px; border-radius: 50%;
+    background-color: var(--accent-primary);
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+.dot-loader:nth-child(1) { animation-delay: -0.32s; }
+.dot-loader:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+/* --- Toast Notifications --- */
+#toast-container { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.toast {
+    padding: 0.8rem 1.5rem; border-radius: 8px; color: white;
+    font-weight: 600; font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0; transform: translateY(20px);
+    animation: toast-in 0.3s ease-out forwards, toast-out 0.3s ease-in 3s forwards;
+    display: flex; align-items: center; gap: 0.75rem; max-width: 90vw;
+}
+.toast.success { background-color: var(--accent-secondary); }
+.toast.error { background-color: #e74c3c; }
+.toast.info { background-color: var(--accent-primary); }
+.toast svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+@keyframes toast-in { to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+
+/* --- Dark Mode Specific Styles --- */
+body.dark-mode .input-wrapper span { background: #3a4049; border-left-color: var(--input-border); }
+body.dark-mode .input-wrapper input, body.dark-mode .input-wrapper select { color: var(--text-primary); }
+body.dark-mode .input-wrapper input:read-only, body.dark-mode .input-wrapper input:disabled { background-color: #2a2a2a; color: var(--text-secondary); }
+body.dark-mode .pity-settings { background-color: #22272e; border-color: var(--input-border); }
+body.dark-mode .quick-select-group button { background-color: var(--input-bg); color: var(--text-secondary); border-color: var(--input-border); }
+body.dark-mode .quick-select-group button:hover { background-color: #333942; border-color: var(--accent-primary); color: var(--accent-primary); }
+body.dark-mode .quick-select-group button.active-preset { background-color: var(--accent-primary); color: #1c2128; border-color: var(--accent-primary); }
+body.dark-mode .price-settings-actions button.secondary { background: #22272e; color: var(--text-primary); border: 1px solid var(--input-border); }
+body.dark-mode .price-settings-actions button.secondary:hover { background-color: #333942; }
+body.dark-mode .select-unit-wrapper {
+    background-color: #3a4049;
+    border-left-color: var(--input-border);
+}
+body.dark-mode .select-unit-wrapper select {
+    color: var(--text-primary);
+}
+body.dark-mode #execution-time { background-color: #22272e; border-color: #444c56; color: var(--text-secondary); }
+body.dark-mode .result-card { background-color: #2d333b; border-color: var(--panel-border); }
+body.dark-mode .result-card-header { background-color: #22272e; border-bottom-color: var(--panel-border); }
+body.dark-mode .result-table th, body.dark-mode .result-table td { border-bottom-color: var(--panel-border); }
+body.dark-mode .result-table thead th { background-color: #282e35; }
+body.dark-mode .progress-fill.exact { background-color: var(--accent-secondary); opacity: 0.3; }
+body.dark-mode .progress-fill.cumulative { background-color: var(--accent-primary); opacity: 0.3; }
+body.dark-mode .toast.info { background-color: var(--accent-primary); }
+body.dark-mode select option { background: var(--input-bg); color: var(--text-primary); }
+body.dark-mode .input-description.krw-preview {
+    color: var(--accent-primary);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 900px) {
+    body { padding: 1rem; }
+    #simulator-sheet { flex-direction: column; gap: 1.5rem; }
+    .settings-panel, .results-panel { width: 100%; max-width: none; min-width: unset; }
+}
+@media (max-width: 700px) {
+    .price-settings-panel .settings-form {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .credits {
+        text-align: center;
+    }
+}
+@media (max-width: 600px) {
+    body { padding: 0.5rem; }
+    .container { gap: 1rem; }
+    .app-header { padding: 1rem; padding-top: 4rem; border-radius: 0 0 16px 16px; }
+    .panel { padding: 1.5rem; }
+    .version-info, .theme-toggle {
+        top: 1rem;
+    }
+    .version-info {
+        right: 1rem;
+        font-size: 0.7rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .theme-toggle { left: 1rem; }
+    .app-header h1 { font-size: 1.5rem; }
+
+    #simulator-sheet .settings-form .input-group {
+        grid-column: unset !important;
+    }
+    .pity-settings { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+    .pity-settings .input-wrapper { width: 100%; }
+    .result-table th, .result-table td { padding: 0.7rem 0.8rem; }
+    .analyzer-sentence { font-size: 1rem; }
+    .analyzer-sentence .input-wrapper { width: 100px; }
+    .analyzer-sentence .input-wrapper input { font-size: 1rem; }
+}
+
+@media (max-width: 400px) {
+    .analyzer-sentence { font-size: 1rem; }
+    .analyzer-sentence .input-wrapper { width: 90px; }
+    .analyzer-sentence .input-wrapper input { font-size: 1rem; }
+    .sheet-nav button {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* --- Tooltip --- */
+.tooltip-trigger {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background-color: var(--text-secondary);
+    color: var(--panel-bg);
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: help;
+    position: relative;
+    margin: 0 0.25rem;
+}
+
+.tooltip-trigger::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--header-bg);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.tooltip-trigger:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Median Row Highlight --- */
+.median-row td {
+    font-weight: 700 !important;
+}
+
+.median-row {
+    background-color: rgba(46, 204, 113, 0.1) !important;
+}
+
+body.dark-mode .median-row {
+    background-color: rgba(52, 211, 153, 0.15) !important;
+}
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="version-info">
+                <div>Version: 1.0.0</div>
+                <div>Last Updated: 2025.7.18</div>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.591a.75.75 0 11-1.06-1.06l1.591-1.591a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 0l-1.591-1.591a.75.75 0 011.06-1.06l1.591 1.591a.75.75 0 010 1.06zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM5.106 17.894a.75.75 0 010-1.06l1.591-1.591a.75.75 0 011.06 1.06l-1.591 1.591a.75.75 0 01-1.06 0zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 6.106a.75.75 0 011.06 0l1.591 1.591a.75.75 0 01-1.06 1.06L6.106 7.166a.75.75 0 010-1.06z" />
+                </svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.463-.949a.75.75 0 01.82.162a10.5 10.5 0 11-14.73-14.73a.75.75 0 01.819.162z" clip-rule="evenodd" />
+                </svg>
+                <span id="theme-toggle-label"></span>
+            </button>
+            <h1>채용 시뮬레이터</h1>
+            <nav class="sheet-nav">
+                <button id="show-simulator-btn" class="active">시뮬레이터</button>
+                <button id="show-analyzer-btn">나의 운 분석기</button>
+                <button id="show-price-settings-btn">가격 설정</button>
+            </nav>
+        </header>
+
+        <main class="content-wrapper">
+            <!-- Simulator Sheet -->
+            <div id="simulator-sheet" class="sheet-content">
+                <div class="panel settings-panel">
+                    <div class="panel-header">
+                        <h2>시뮬레이터 설정</h2>
+                    </div>
+                
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="recruitment-type">채용 종류</label>
+                            <div class="input-wrapper">
+                                <select id="recruitment-type">
+                                    <option value="confidential">기밀채용</option>
+                                    <option value="standard">일반채용</option>
+                                </select>
+                                <i class="select-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708 .708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="cost-per-pull">1회당 비용 (자동 계산)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="cost-per-pull" min="0" readonly>
+                                <span>원</span>
+                            </div>
+                        </div>
+                         <div class="input-group">
+                            <label for="total-attempts">채용 시도 횟수</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="total-attempts" value="1000" min="1" aria-describedby="attempts-warning confidential-tickets-display">
+                                <span>회</span>
+                            </div>
+                            <small id="confidential-tickets-display" class="input-description hidden"></small>
+                            <small id="attempts-warning" class="input-warning hidden" aria-live="polite"></small>
+                        </div>
+                         <div class="input-group">
+                            <label for="target-wins">목표 성공 횟수</label>
+                             <div class="quick-select-group" id="target-wins-presets">
+                                <button type="button" data-value="1">명함</button>
+                                <button type="button" data-value="4">3돌</button>
+                                <button type="button" data-value="7">6돌</button>
+                                <button type="button" data-value="8">오퍼 만렙</button>
+                                <button type="button" data-value="custom">직접 입력</button>
+                            </div>
+                            <div class="input-wrapper">
+                                <input type="number" id="target-wins" placeholder="6돌은 7" value="1" min="1">
+                                <span>회 이상</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="win-rate">픽업 확률</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="win-rate" value="1" step="0.1" min="0.0001" max="100">
+                                <span>%</span>
+                            </div>
+                        </div>
+                         <div class="input-group pity-settings">
+                            <div class="pity-label-text">천장 시스템 <span class="tooltip-trigger" data-tooltip="N회 시도 안에 성공하지 못하면, N번째 시도에서 100% 확률로 성공합니다.">?</span><small class="pity-recommendation">(ON 권장)</small></div>
+                            <div class="pity-controls">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="pity-toggle" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="input-wrapper" id="pity-input-wrapper">
+                                    <input type="number" id="pity-count" value="150" min="2">
+                                    <span>회</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="calculate-btn">
+                        계산하기
+                    </button>
+                </div>
+
+                <div class="panel results-panel">
+                    <div id="loader" class="loader-container hidden">
+                        <div class="dot-loader"></div>
+                        <div class="dot-loader"></div>
+                        <div class="dot-loader"></div>
+                    </div>
+                    <div id="results-area" class="hidden" aria-live="polite">
+                         <div class="panel-header results-header">
+                            <h2>분석 결과</h2>
+                            <div id="execution-time"></div>
+                        </div>
+
+                        <div class="results-container">
+                             <div class="result-card">
+                                <div class="result-card-header">
+                                    <span id="summary-title">목표 달성 확률</span>
+                                </div>
+                                <table class="result-table">
+                                    <thead><tr><th>결과</th><th>달성 확률</th></tr></thead>
+                                    <tbody id="summary-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-card-header">
+                                    <span id="distribution-title">성공 횟수별 확률 분포</span>
+                                </div>
+                                <table class="result-table">
+                                    <thead><tr><th>성공 횟수</th><th>정확히 N회</th><th>N회 이상</th></tr></thead>
+                                    <tbody id="distribution-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-card-header">
+                                    <span id="expected-pulls-title">달성 확률 구간별 예상 비용</span>
+                                </div>
+                                <table class="result-table">
+                                    <thead><tr><th>달성 확률</th><th>필요 뽑기 횟수</th><th>예상 비용</th></tr></thead>
+                                    <tbody id="expected-pulls-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Luck Analyzer Sheet -->
+            <div id="analyzer-sheet" class="sheet-content hidden">
+                <div class="panel analyzer-panel">
+                    <div class="panel-header">
+                        <h2>나의 운 분석기</h2>
+                    </div>
+                    <div class="analyzer-form-container">
+                        <div class="input-group">
+                            <label for="analyzer-attempts">과거 채용 결과</label>
+                            <div class="analyzer-sentence">
+                                <span>나는</span>
+                                <div class="input-wrapper">
+                                    <input type="number" id="analyzer-attempts" value="150" min="1" aria-describedby="analyzer-attempts-warning">
+                                </div>
+                                <span>회 채용하여</span>
+                                <div class="input-wrapper">
+                                     <input type="number" id="analyzer-wins" value="1" min="0">
+                                </div>
+                                <span>번 성공했습니다.</span>
+                            </div>
+                            <small id="analyzer-attempts-warning" class="input-warning hidden" aria-live="polite"></small>
+                        </div>
+                        <div class="input-group">
+                            <label for="analyzer-prob">기본 당첨 확률</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="analyzer-prob" value="1" step="0.1" min="0.0001" max="100">
+                                <span>%</span>
+                            </div>
+                        </div>
+                         <div class="input-group pity-settings">
+                            <div class="pity-label-text">천장 시스템 <span class="tooltip-trigger" data-tooltip="N회 시도 안에 성공하지 못하면, N번째 시도에서 100% 확률로 성공합니다.">?</span><small class="pity-recommendation">(ON 권장)</small></div>
+                            <div class="pity-controls">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="analyzer-pity-toggle" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="input-wrapper" id="analyzer-pity-input-wrapper">
+                                    <input type="number" id="analyzer-pity-count" value="150" min="2">
+                                    <span>회</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="analyze-btn">
+                            내 운 분석하기
+                        </button>
+                    </div>
+                    <div id="analyzer-results-area" class="hidden" aria-live="polite">
+                        <div id="analyzer-loader" class="loader-container">
+                            <div class="dot-loader"></div>
+                            <div class="dot-loader"></div>
+                            <div class="dot-loader"></div>
+                        </div>
+                        <div id="analyzer-chart-container" class="hidden">
+                            <div class="analyzer-chart" id="analyzer-chart"></div>
+                            <div id="analyzer-result-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Settings Sheet -->
+            <div id="price-settings-sheet" class="sheet-content hidden">
+                <div class="panel price-settings-panel">
+                     <div class="panel-header">
+                        <h2>가격 설정</h2>
+                    </div>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="coin-efficiency">주화 구매 효율</label>
+                             <div class="quick-select-group" id="coin-efficiency-presets">
+                                <button type="button" data-value="500">월정액</button>
+                                <button type="button" data-value="200">2배 패키지</button>
+                                <button type="button" data-value="150">깡트럭</button>
+                                <button type="button" data-value="100">기본</button>
+                                <button type="button" data-value="custom">직접 입력</button>
+                            </div>
+                            <div class="input-wrapper">
+                                <input type="number" id="coin-efficiency" min="1" aria-describedby="coin-desc">
+                                <span>%</span>
+                            </div>
+                            <small class="input-description" id="coin-desc">기준: 100% 효율 = 1주화당 15원</small>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="quartz-efficiency">쿼츠 교환 효율</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="quartz-efficiency" value="2" step="0.1" min="0.1" aria-describedby="quartz-desc">
+                                <span>배</span>
+                            </div>
+                            <small class="input-description" id="quartz-desc">기준: 2배 효율 = 1주화로 2쿼츠</small>
+                        </div>
+
+                        <div class="input-group form-spanning-group">
+                            <hr class="form-divider">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="confidential-cost-presets">기밀채용 비용</label>
+                             <div class="quick-select-group" id="confidential-cost-presets">
+                                <button type="button" data-value="300-coin">깡기채권 (300주화)</button>
+                                <button type="button" data-value="200-coin">깡트럭 (200주화)</button>
+                                <button type="button" data-value="250-quartz">주간쿼츠 (250쿼츠)</button>
+                                <button type="button" data-value="custom">직접 입력</button>
+                            </div>
+                            <div class="input-wrapper" id="confidential-cost-custom-wrapper">
+                                <input type="number" id="confidential-cost" min="0" step="any">
+                                <div class="select-unit-wrapper">
+                                    <select id="confidential-cost-currency">
+                                        <option value="coin">주화</option>
+                                        <option value="quartz">쿼츠</option>
+                                    </select>
+                                    <i class="select-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708 .708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg></i>
+                                </div>
+                            </div>
+                             <small id="confidential-cost-krw" class="input-description krw-preview"></small>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="standard-cost">일반채용 비용</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="standard-cost" value="150" min="1">
+                                <span>쿼츠</span>
+                            </div>
+                            <small id="standard-cost-krw" class="input-description krw-preview"></small>
+                        </div>
+                        
+                        <div class="price-settings-actions form-spanning-group">
+                            <button id="save-settings-btn" class="primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.854 3.146a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L5.5 12.293l9.646-9.647a.5.5 0 0 1 .708 0z"/></svg>
+                                설정 저장
+                            </button>
+                            <button id="reset-settings-btn" class="secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+                                초기화
+                            </button>
+                        </div>
+                    </div>
+                    <div class="credits">
+                        Made by 이하늘<br>
+                        Special Thanks: Gemini
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="toast-container"></div>
+    <script type="module">
+        // --- Start of Calculator Logic ---
+        const PITY_MAX_N = 1500;
+        const PITY_MAX_EXPECTED_PULLS = 5000;
+        const TARGET_PROBS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99];
+
+        async function calculate(params) {
+            if (params.usePity) {
+                return calculateWithPity(params);
+            } else {
+                return calculateBinomial(params);
+            }
+        }
+
+        function calculateWithPity(params) {
+            const { p, n, k, m } = params;
+
+            if (n > PITY_MAX_N) {
+                throw new Error(`천장 시스템 계산은 정확도를 위해 ${PITY_MAX_N}회 이하의 시도에서만 지원됩니다.`);
+            }
+
+            let dp_dist = new Array(n + 1).fill(0).map(() => new Array(m).fill(0));
+            dp_dist[0][0] = 1;
+
+            for (let i = 0; i < n; i++) {
+                const next_dp = new Array(i + 2).fill(0).map(() => new Array(m).fill(0));
+                for (let current_k = 0; current_k <= i; current_k++) {
+                    for (let s = 0; s < m; s++) {
+                        if (dp_dist[current_k][s] === 0) continue;
+
+                        if (s === m - 1) {
+                            if (current_k + 1 <= n) {
+                                next_dp[current_k + 1][0] += dp_dist[current_k][s];
+                            }
+                        } else {
+                            if (current_k + 1 <= n) {
+                                 next_dp[current_k + 1][0] += dp_dist[current_k][s] * p;
+                            }
+                            if (s + 1 < m) {
+                                next_dp[current_k][s + 1] += dp_dist[current_k][s] * (1 - p);
+                            }
+                        }
+                    }
+                }
+                dp_dist = next_dp;
+            }
+
+            const probExactly = new Array(n + 1).fill(0);
+            for (let current_k = 0; current_k <= n; current_k++) {
+                for (let s = 0; s < m; s++) {
+                    probExactly[current_k] += dp_dist[current_k]?.[s] ?? 0;
+                }
+            }
+            
+            let probGTE_k = 0;
+            for (let i = k; i <= n; i++) {
+                probGTE_k += probExactly[i];
+            }
+
+            const summary = { gte: probGTE_k, lt: 1 - probGTE_k };
+            
+            const distribution = [];
+            let cumulative = probExactly.reduce((a, b) => a + b, 0);
+            for (let i = 0; i <= n; i++) {
+                distribution.push({ prob: probExactly[i], cumulative: cumulative });
+                if (cumulative > 0) {
+                    cumulative -= probExactly[i];
+                }
+            }
+
+            const expectedPulls = [];
+            const maxPulls = Math.min(k * m, PITY_MAX_EXPECTED_PULLS);
+
+            let dp_exp = new Array(k).fill(0).map(() => new Array(m).fill(0));
+            dp_exp[0][0] = 1;
+            
+            let prob_gte_k_exp = 0;
+            
+            const cumulativeProbsForK = new Array(maxPulls + 1).fill(0);
+
+            for (let i = 0; i < maxPulls; i++) {
+                const next_dp = new Array(k).fill(0).map(() => new Array(m).fill(0));
+                let next_prob_gte_k = prob_gte_k_exp;
+
+                for (let j = 0; j < k; j++) {
+                    for (let s = 0; s < m; s++) {
+                        if (dp_exp[j][s] === 0) continue;
+                        const current_prob = dp_exp[j][s];
+
+                        if (s === m - 1) {
+                            if (j + 1 < k) {
+                                next_dp[j + 1][0] += current_prob;
+                            } else {
+                                next_prob_gte_k += current_prob;
+                            }
+                        } else {
+                            const success_prob = current_prob * p;
+                            if (j + 1 < k) {
+                                next_dp[j + 1][0] += success_prob;
+                            } else {
+                                next_prob_gte_k += success_prob;
+                            }
+                            
+                            const failure_prob = current_prob * (1 - p);
+                            if (s + 1 < m) {
+                                next_dp[j][s + 1] += failure_prob;
+                            }
+                        }
+                    }
+                }
+                
+                dp_exp = next_dp;
+                prob_gte_k_exp = next_prob_gte_k;
+                cumulativeProbsForK[i + 1] = prob_gte_k_exp;
+            }
+
+            let searchIndex = k;
+            for (const targetP of TARGET_PROBS) {
+                let neededN = null;
+                for (let j = searchIndex; j <= maxPulls; j++) {
+                    if (cumulativeProbsForK[j] >= targetP) {
+                        neededN = j;
+                        searchIndex = j;
+                        break;
+                    }
+                }
+                expectedPulls.push({ prob: targetP, pulls: neededN });
+            }
+
+            return { summary, distribution, expectedPulls };
+        }
+
+        function calculateBinomial(params) {
+            const { p, n, k } = params;
+            
+            if (p >= 1) {
+                const probGTE_k = k <= n ? 1 : 0;
+                const summary = { gte: probGTE_k, lt: 1 - probGTE_k };
+                const distribution = Array(n + 1).fill(0).map((_, i) => ({
+                    prob: i === n ? 1 : 0,
+                    cumulative: i <= n ? 1 : 0,
+                }));
+                const expectedPulls = TARGET_PROBS.map(prob => ({ prob, pulls: k }));
+                return { summary, distribution, expectedPulls };
+            }
+            if (p <= 0) {
+                const probGTE_k = k === 0 ? 1 : 0;
+                const summary = { gte: probGTE_k, lt: 1 - probGTE_k };
+                const distribution = Array(n + 1).fill(0).map((_, i) => ({
+                    prob: i === 0 ? 1 : 0,
+                    cumulative: 1,
+                }));
+                const expectedPulls = TARGET_PROBS.map(prob => ({ prob, pulls: k === 0 ? 0 : null }));
+                return { summary, distribution, expectedPulls };
+            }
+            
+            const lgammaCoeffs = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+            const gLgamma = 7;
+            
+            function lgamma(z) {
+                if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lgamma(1 - z);
+                const x = z - 1;
+                let a = lgammaCoeffs[0];
+                const t = x + gLgamma + 0.5;
+                for (let i = 1; i < lgammaCoeffs.length; i++) a += lgammaCoeffs[i] / (x + i);
+                return (x + 0.5) * Math.log(t) - t + Math.log(Math.sqrt(2 * Math.PI) * a);
+            }
+            
+            function logCombinations(n, k) {
+                if (k < 0 || k > n) return -Infinity;
+                return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1);
+            }
+
+            const logP = Math.log(p);
+            const logOneMinusP = Math.log1p(-p);
+            
+            function logBinomialProb(k, n) {
+                if (k < 0 || k > n) return -Infinity;
+                return logCombinations(n, k) + k * logP + (n - k) * logOneMinusP;
+            }
+            
+            function cumulativeBinomial(startK, numTrials) {
+                if (startK > numTrials) return 0.0;
+                if (startK <= 0) return 1.0;
+
+                if (startK > numTrials / 2) {
+                    let sum = 0;
+                    for (let i = startK; i <= numTrials; i++) {
+                        sum += Math.exp(logBinomialProb(i, numTrials));
+                    }
+                    return sum;
+                } else {
+                    let sumOfLower = 0;
+                    for (let i = 0; i < startK; i++) {
+                        sumOfLower += Math.exp(logBinomialProb(i, numTrials));
+                    }
+                    return 1.0 - sumOfLower;
+                }
+            }
+
+            const probGTE_k = cumulativeBinomial(k, n);
+            const summary = { gte: probGTE_k, lt: 1 - probGTE_k };
+
+            const distribution = [];
+            let cumulativeProb = 1.0;
+            for (let i = 0; i <= n; i++) {
+                const prob_i = Math.exp(logBinomialProb(i, n));
+                distribution.push({ prob: prob_i, cumulative: cumulativeProb });
+                if (cumulativeProb > 0) {
+                    cumulativeProb -= prob_i;
+                }
+            }
+
+            const expectedPulls = [];
+            for (const targetP of TARGET_PROBS) {
+                let low = k, high = Math.max(k * 2, Math.ceil(k / p * 2)), neededN = null;
+
+                while (cumulativeBinomial(k, high) < targetP) {
+                    low = high;
+                    high = Math.ceil(high * 1.5);
+                    if (high > 10_000_000) {
+                        high = -1;
+                        break;
+                    }
+                }
+                
+                if (high !== -1) {
+                    let searchHigh = high;
+                    if (targetP > 0.9 && cumulativeBinomial(k, searchHigh) < targetP) {
+                        searchHigh = Math.ceil(searchHigh * 2);
+                    }
+
+                    for (let iter = 0; iter < 100; iter++) {
+                        if (low >= searchHigh) break;
+                        const mid = low + Math.floor((searchHigh - low) / 2);
+                        if (mid <= low) break; 
+                        if (cumulativeBinomial(k, mid) >= targetP) {
+                            searchHigh = mid;
+                        } else {
+                            low = mid;
+                        }
+                    }
+                    neededN = searchHigh;
+                }
+                expectedPulls.push({ prob: targetP, pulls: neededN });
+            }
+
+            return { summary, distribution, expectedPulls };
+        }
+        // --- End of Calculator Logic ---
+
+
+        // --- Start of App Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const PRICE_SETTINGS_KEY = 'gachaSimPriceSettings_v3';
+            const THEME_KEY = 'gachaSimTheme_v1';
+
+            const defaultPriceSettings = {
+                coinEfficiency: 200,
+                quartzEfficiency: 2,
+                confidentialCost: 200,
+                confidentialCostCurrency: 'coin',
+                standardCost: 150,
+            };
+            let currentPriceSettings;
+
+            // --- Element Selectors ---
+            const themeToggle = document.getElementById('theme-toggle');
+            const showSimulatorBtn = document.getElementById('show-simulator-btn');
+            const showAnalyzerBtn = document.getElementById('show-analyzer-btn');
+            const showPriceSettingsBtn = document.getElementById('show-price-settings-btn');
+            const simulatorSheet = document.getElementById('simulator-sheet');
+            const analyzerSheet = document.getElementById('analyzer-sheet');
+            const priceSettingsSheet = document.getElementById('price-settings-sheet');
+            const recruitmentTypeSelect = document.getElementById('recruitment-type');
+            const winRateInput = document.getElementById('win-rate');
+            const costPerPullInput = document.getElementById('cost-per-pull');
+            const totalAttemptsInput = document.getElementById('total-attempts');
+            const confidentialTicketsDisplay = document.getElementById('confidential-tickets-display');
+            const attemptsWarning = document.getElementById('attempts-warning');
+            const targetWinsInput = document.getElementById('target-wins');
+            const targetWinsPresets = document.getElementById('target-wins-presets');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const pityToggle = document.getElementById('pity-toggle');
+            const pityInputWrapper = document.getElementById('pity-input-wrapper');
+            const pityCountInput = document.getElementById('pity-count');
+            const analyzerAttemptsInput = document.getElementById('analyzer-attempts');
+            const analyzerWinsInput = document.getElementById('analyzer-wins');
+            const analyzerProbInput = document.getElementById('analyzer-prob');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const analyzerResultsArea = document.getElementById('analyzer-results-area');
+            const analyzerLoader = document.getElementById('analyzer-loader');
+            const analyzerChartContainer = document.getElementById('analyzer-chart-container');
+            const analyzerChart = document.getElementById('analyzer-chart');
+            const analyzerResultText = document.getElementById('analyzer-result-text');
+            const analyzerAttemptsWarning = document.getElementById('analyzer-attempts-warning');
+            const analyzerPityToggle = document.getElementById('analyzer-pity-toggle');
+            const analyzerPityInputWrapper = document.getElementById('analyzer-pity-input-wrapper');
+            const analyzerPityCountInput = document.getElementById('analyzer-pity-count');
+            const coinEfficiencyPresets = document.getElementById('coin-efficiency-presets');
+            const coinEfficiencyInput = document.getElementById('coin-efficiency');
+            const quartzEfficiencyInput = document.getElementById('quartz-efficiency');
+            const confidentialCostPresets = document.getElementById('confidential-cost-presets');
+            const confidentialCostInput = document.getElementById('confidential-cost');
+            const confidentialCostCurrencySelect = document.getElementById('confidential-cost-currency');
+            const standardCostInput = document.getElementById('standard-cost');
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+            const resetSettingsBtn = document.getElementById('reset-settings-btn');
+            const confidentialCostKrw = document.getElementById('confidential-cost-krw');
+            const standardCostKrw = document.getElementById('standard-cost-krw');
+            const resultsArea = document.getElementById('results-area');
+            const loader = document.getElementById('loader');
+            const summaryTitle = document.getElementById('summary-title');
+            const distributionTitle = document.getElementById('distribution-title');
+            const expectedPullsTitle = document.getElementById('expected-pulls-title');
+            const summaryBody = document.getElementById('summary-body');
+            const distributionBody = document.getElementById('distribution-body');
+            const expectedPullsBody = document.getElementById('expected-pulls-body');
+            const executionTimeDiv = document.getElementById('execution-time');
+            const toastContainer = document.getElementById('toast-container');
+
+            // --- Helper Functions ---
+            function showToast(message, type = 'success', duration = 3300) {
+                if (!toastContainer) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const iconSvg = {
+                    success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>`,
+                    error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>`,
+                    info: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>`
+                };
+                
+                toast.innerHTML = `${iconSvg[type]} <span>${message}</span>`;
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, duration);
+            }
+
+            const formatPercent = (n) => `${(n * 100).toFixed(4)}%`;
+            const formatNumber = (n) => n.toLocaleString('ko-KR');
+
+            function createProgressBar(percent, type) {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'progress-bar';
+                const fill = document.createElement('div');
+                fill.className = `progress-fill ${type}`;
+                fill.style.width = `${Math.min(percent * 100, 100)}%`;
+                barContainer.appendChild(fill);
+                return barContainer;
+            }
+            
+            function setTitles(nStr, kStr) {
+                summaryTitle.textContent = `목표 달성 확률 (${nStr}회 시도)`;
+                distributionTitle.textContent = `성공 횟수별 확률 분포 (${nStr}회 시도)`;
+                expectedPullsTitle.textContent = `달성 확률 구간별 예상 비용`;
+            }
+
+            function clearResults() {
+                summaryBody.innerHTML = '';
+                distributionBody.innerHTML = '';
+                expectedPullsBody.innerHTML = '';
+                executionTimeDiv.textContent = '';
+            }
+            
+            // --- Theme Management ---
+            function applyTheme(theme) {
+                const labelSpan = themeToggle.querySelector('span');
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    if (labelSpan) labelSpan.textContent = '라이트 모드';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    if (labelSpan) labelSpan.textContent = '다크 모드';
+                }
+            }
+
+            function handleThemeToggle() {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                const newTheme = isDarkMode ? 'light' : 'dark';
+                applyTheme(newTheme);
+                localStorage.setItem(THEME_KEY, newTheme);
+            }
+
+            function loadInitialTheme() {
+                const savedTheme = localStorage.getItem(THEME_KEY);
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+                applyTheme(themeToApply);
+            }
+
+            // --- UI Logic ---
+            function switchSheet(sheetToShow) {
+                simulatorSheet.classList.add('hidden');
+                analyzerSheet.classList.add('hidden');
+                priceSettingsSheet.classList.add('hidden');
+
+                showSimulatorBtn.classList.remove('active');
+                showAnalyzerBtn.classList.remove('active');
+                showPriceSettingsBtn.classList.remove('active');
+
+                if (sheetToShow === 'simulator') {
+                    simulatorSheet.classList.remove('hidden');
+                    showSimulatorBtn.classList.add('active');
+                } else if (sheetToShow === 'analyzer') {
+                    analyzerSheet.classList.remove('hidden');
+                    showAnalyzerBtn.classList.add('active');
+                } else {
+                    priceSettingsSheet.classList.remove('hidden');
+                    showPriceSettingsBtn.classList.add('active');
+                }
+            }
+            
+            function populatePriceSettingsForm() {
+                coinEfficiencyInput.value = currentPriceSettings.coinEfficiency.toString();
+                quartzEfficiencyInput.value = currentPriceSettings.quartzEfficiency.toString();
+                confidentialCostInput.value = currentPriceSettings.confidentialCost.toString();
+                confidentialCostCurrencySelect.value = currentPriceSettings.confidentialCostCurrency;
+                standardCostInput.value = currentPriceSettings.standardCost.toString();
+
+                updateCoinPresetUI();
+                updateConfidentialPresetUI();
+            }
+
+            function loadPriceSettings() {
+                try {
+                    const savedSettings = localStorage.getItem(PRICE_SETTINGS_KEY);
+                    currentPriceSettings = savedSettings ? JSON.parse(savedSettings) : { ...defaultPriceSettings };
+                } catch {
+                    currentPriceSettings = { ...defaultPriceSettings };
+                }
+                populatePriceSettingsForm();
+                updateAllCosts();
+            }
+
+            function savePriceSettings() {
+                const settings = {
+                    coinEfficiency: parseFloat(coinEfficiencyInput.value) || 100,
+                    quartzEfficiency: parseFloat(quartzEfficiencyInput.value) || 2,
+                    confidentialCost: parseFloat(confidentialCostInput.value) || 300,
+                    confidentialCostCurrency: confidentialCostCurrencySelect.value || 'coin',
+                    standardCost: parseInt(standardCostInput.value, 10) || 150,
+                };
+
+                currentPriceSettings = settings;
+                localStorage.setItem(PRICE_SETTINGS_KEY, JSON.stringify(settings));
+                showToast('설정이 저장되었습니다.', 'success');
+                updateAllCosts();
+
+                const originalText = saveSettingsBtn.innerHTML;
+                saveSettingsBtn.innerHTML = `저장됨!`;
+                saveSettingsBtn.disabled = true;
+                setTimeout(() => {
+                    saveSettingsBtn.innerHTML = originalText;
+                    saveSettingsBtn.disabled = false;
+                }, 2000);
+            }
+
+            function resetPriceSettings() {
+                if (confirm('모든 가격 설정을 초기 기본값으로 되돌리시겠습니까?')) {
+                    currentPriceSettings = { ...defaultPriceSettings };
+                    localStorage.removeItem(PRICE_SETTINGS_KEY);
+                    populatePriceSettingsForm();
+                    updateAllCosts();
+                    showToast('설정이 초기화되었습니다.', 'info');
+                }
+            }
+            
+            function updateAllCosts() {
+                const baseCoinKRW = 15;
+                const coinEfficiency = parseFloat(coinEfficiencyInput.value) || currentPriceSettings.coinEfficiency;
+                const quartzEfficiency = parseFloat(quartzEfficiencyInput.value) || currentPriceSettings.quartzEfficiency;
+                const confidentialCostVal = parseFloat(confidentialCostInput.value) || currentPriceSettings.confidentialCost;
+                const confidentialCurrency = confidentialCostCurrencySelect.value || currentPriceSettings.confidentialCostCurrency;
+                const standardCostVal = parseInt(standardCostInput.value, 10) || currentPriceSettings.standardCost;
+
+                const coinCost = baseCoinKRW / (coinEfficiency / 100);
+                const quartzCostInCoins = 1 / quartzEfficiency;
+
+                const confidentialKRW = (confidentialCurrency === 'coin')
+                    ? confidentialCostVal * coinCost
+                    : confidentialCostVal * quartzCostInCoins * coinCost;
+                
+                const standardKRW = standardCostVal * quartzCostInCoins * coinCost;
+                
+                confidentialCostKrw.textContent = `≈ ${formatNumber(Math.round(confidentialKRW))}원 / 1회`;
+                standardCostKrw.textContent = `≈ ${formatNumber(Math.round(standardKRW))}원 / 1회`;
+
+                const finalCost = (recruitmentTypeSelect.value === 'confidential') ? confidentialKRW : standardKRW;
+                costPerPullInput.value = finalCost.toFixed(2);
+            }
+
+            function renderResults(results, price) {
+                const { summary, distribution, expectedPulls } = results;
+                const rowSuccess = summaryBody.insertRow();
+                rowSuccess.innerHTML = `<td>목표 달성 (${targetWinsInput.value}회 이상)</td><td class="progress-cell"><div>${formatPercent(summary.gte)}</div></td>`;
+                rowSuccess.cells[0].dataset.label = '결과';
+                rowSuccess.cells[1].dataset.label = '달성 확률';
+                rowSuccess.cells[1].appendChild(createProgressBar(summary.gte, 'cumulative'));
+                
+                const rowFail = summaryBody.insertRow();
+                rowFail.innerHTML = `<td>목표 미달 (${parseInt(targetWinsInput.value, 10) - 1}회 이하)</td><td class="progress-cell"><div>${formatPercent(summary.lt)}</div></td>`;
+                rowFail.cells[0].dataset.label = '결과';
+                rowFail.cells[1].dataset.label = '달성 확률';
+                rowFail.cells[1].appendChild(createProgressBar(summary.lt, 'cumulative'));
+
+                const maxDisplayK = Math.min(parseInt(totalAttemptsInput.value, 10), Math.max(10, parseInt(targetWinsInput.value, 10) + 5));
+                distribution.slice(0, maxDisplayK + 1).forEach((dist, i) => {
+                    const row = distributionBody.insertRow();
+                    row.innerHTML = `<td>${i}회</td>
+                                <td class="progress-cell"><div>${formatPercent(dist.prob)}</div></td>
+                                <td class="progress-cell"><div>${formatPercent(dist.cumulative)}</div></td>`;
+                    row.cells[0].dataset.label = '성공 횟수';
+                    row.cells[1].dataset.label = '정확히 N회';
+                    row.cells[2].dataset.label = 'N회 이상';
+                    row.cells[1].appendChild(createProgressBar(dist.prob, 'exact'));
+                    row.cells[2].appendChild(createProgressBar(dist.cumulative, 'cumulative'));
+                });
+
+                expectedPulls.forEach((pull) => {
+                    const row = expectedPullsBody.insertRow();
+                    if (pull.prob === 0.5) {
+                        row.classList.add('median-row');
+                    }
+                    if (pull.pulls !== null) {
+                        row.innerHTML = `<td>${pull.prob * 100}%</td><td>${formatNumber(pull.pulls)}회</td><td>${formatNumber(pull.pulls * price)}원</td>`;
+                        row.cells[0].dataset.label = '달성 확률';
+                        row.cells[1].dataset.label = '필요 뽑기 횟수';
+                        row.cells[2].dataset.label = '예상 비용';
+                    } else {
+                        row.innerHTML = `<td>${pull.prob * 100}%</td><td colspan="2">계산 불가 (매우 많은 시도 필요)</td>`;
+                        row.cells[0].dataset.label = '달성 확률';
+                        row.cells[1].dataset.label = '결과';
+                    }
+                });
+                
+                if (pityToggle.checked) {
+                    const k = parseInt(targetWinsInput.value, 10);
+                    const pity = parseInt(pityCountInput.value, 10);
+                    const worstCasePulls = k * pity;
+                    const worstCaseCost = worstCasePulls * price;
+                    const worstCaseRow = expectedPullsBody.insertRow();
+                    worstCaseRow.innerHTML = `<td>100% (최악의 경우)</td><td>${formatNumber(worstCasePulls)}회</td><td>${formatNumber(worstCaseCost)}원</td>`;
+                    worstCaseRow.cells[0].dataset.label = '달성 확률';
+                    worstCaseRow.cells[1].dataset.label = '필요 뽑기 횟수';
+                    worstCaseRow.cells[2].dataset.label = '예상 비용';
+                }
+            }
+
+            async function handleCalculate() {
+                const winRate = parseFloat(winRateInput.value) / 100;
+                const costPerPull = parseFloat(costPerPullInput.value);
+                const totalAttempts = parseInt(totalAttemptsInput.value, 10);
+                const targetWins = parseInt(targetWinsInput.value, 10);
+                const usePity = pityToggle.checked;
+                const pityCount = parseInt(pityCountInput.value, 10);
+
+                if (isNaN(winRate) || isNaN(costPerPull) || isNaN(totalAttempts) || isNaN(targetWins) || winRate <= 0 || winRate > 1 || totalAttempts < 1 || targetWins < 1 || (usePity && (isNaN(pityCount) || pityCount < 2))) {
+                    showToast('모든 필드에 유효한 값을 입력해주세요.', 'error');
+                    return;
+                }
+
+                if (targetWins > totalAttempts) {
+                    showToast('목표 성공 횟수는 총 시도 횟수보다 클 수 없습니다.', 'error');
+                    return;
+                }
+                
+                resultsArea.classList.add('hidden');
+                loader.classList.remove('hidden');
+                clearResults();
+                
+                await new Promise(resolve => setTimeout(resolve, 50));
+                const startTime = performance.now();
+                
+                setTitles(formatNumber(totalAttempts), formatNumber(targetWins));
+                
+                try {
+                    const results = await calculate({
+                        p: winRate,
+                        n: totalAttempts,
+                        k: targetWins,
+                        m: pityCount,
+                        usePity: usePity,
+                    });
+                    renderResults(results, costPerPull);
+                } catch (error) {
+                    console.error("Calculation Error: ", error);
+                    showToast(error.message || "분석 중 오류가 발생했습니다. 입력값을 확인해주세요.", 'error', 4000);
+                }
+
+                const endTime = performance.now();
+                executionTimeDiv.textContent = `분석 시간: ${(endTime - startTime).toFixed(4)}ms`;
+                
+                loader.classList.add('hidden');
+                resultsArea.classList.remove('hidden');
+            }
+
+            async function handleAnalyze() {
+                const attempts = parseInt(analyzerAttemptsInput.value, 10);
+                const wins = parseInt(analyzerWinsInput.value, 10);
+                const prob = parseFloat(analyzerProbInput.value) / 100;
+                const usePity = analyzerPityToggle.checked;
+                const pityCount = parseInt(analyzerPityCountInput.value, 10);
+
+                if (isNaN(attempts) || isNaN(wins) || isNaN(prob) || attempts < 1 || wins < 0 || wins > attempts || prob <= 0 || prob >= 1 || (usePity && (isNaN(pityCount) || pityCount < 2))) {
+                    showToast('모든 필드에 유효한 값을 입력해주세요.', 'error');
+                    return;
+                }
+                
+                analyzerResultsArea.classList.remove('hidden');
+                analyzerLoader.classList.remove('hidden');
+                analyzerChartContainer.classList.add('hidden');
+
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                try {
+                    const results = await calculate({
+                        p: prob,
+                        n: attempts,
+                        k: wins,
+                        m: pityCount,
+                        usePity: usePity,
+                    });
+                    renderAnalyzerResults(results, wins);
+                } catch (error) {
+                    console.error("Analyzer Error: ", error);
+                    showToast(error.message || "분석 중 오류가 발생했습니다. 입력값을 확인해주세요.", 'error', 4000);
+                }
+
+                analyzerLoader.classList.add('hidden');
+                analyzerChartContainer.classList.remove('hidden');
+            }
+
+            function renderAnalyzerResults(results, userWins) {
+                const { distribution } = results;
+
+                const percentileUpperBound = distribution[userWins]?.cumulative ?? 0;
+                const percentileLowerBound = distribution[userWins + 1]?.cumulative ?? 0;
+
+                const upperBoundText = (percentileUpperBound * 100).toFixed(2);
+                const lowerBoundText = (percentileLowerBound * 100).toFixed(2);
+
+                if (upperBoundText === lowerBoundText) {
+                     analyzerResultText.textContent = `사장님은 상위 ${upperBoundText}%의 운입니다.`;
+                } else {
+                     analyzerResultText.textContent = `사장님의 운은 상위 ${lowerBoundText}% ~ ${upperBoundText}% 사이에 위치합니다.`;
+                }
+
+                analyzerChart.innerHTML = '';
+
+                const chartRadius = 15;
+                const start = Math.max(0, userWins - chartRadius);
+                const end = Math.min(distribution.length - 1, userWins + chartRadius);
+                
+                const displayData = distribution.slice(start, end + 1);
+                const maxProb = Math.max(...displayData.map(d => d.prob), 0);
+                
+                displayData.forEach((item, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    
+                    const height = maxProb > 0 ? (item.prob / maxProb) * 100 : 0;
+                    bar.style.height = `${height}%`;
+                    
+                    const currentWins = start + index;
+                    if (currentWins === userWins) {
+                        bar.classList.add('highlight');
+                    }
+
+                    bar.title = `성공 횟수: ${currentWins}회, 확률: ${formatPercent(item.prob)}`;
+                    analyzerChart.appendChild(bar);
+                });
+            }
+
+            function updateTotalAttemptsDisplay() {
+                const recruitmentType = recruitmentTypeSelect.value;
+                const totalAttempts = parseInt(totalAttemptsInput.value, 10);
+
+                if (recruitmentType === 'confidential' && !isNaN(totalAttempts) && totalAttempts > 0) {
+                    const tickets = totalAttempts * 20;
+                    confidentialTicketsDisplay.textContent = `기채권 ${formatNumber(tickets)}장`;
+                    confidentialTicketsDisplay.classList.remove('hidden');
+                } else {
+                    confidentialTicketsDisplay.classList.add('hidden');
+                }
+            }
+
+            function setupPitySystem(
+                toggle,
+                wrapper,
+                countInput,
+                attemptsInput,
+                warningEl,
+                actionBtn,
+                onAttemptsInputCallback
+            ) {
+                function validateAttemptCount() {
+                    const usePity = toggle.checked;
+                    const totalAttempts = parseInt(attemptsInput.value, 10);
+
+                    if (usePity && !isNaN(totalAttempts) && totalAttempts > PITY_MAX_N) {
+                        warningEl.textContent = `천장 시스템 계산은 정확도를 위해 ${PITY_MAX_N}회 이하만 지원됩니다.`;
+                        warningEl.classList.remove('hidden');
+                        actionBtn.disabled = true;
+                    } else {
+                        warningEl.classList.add('hidden');
+                        actionBtn.disabled = false;
+                    }
+                }
+
+                function updatePityVisibility() {
+                    const isEnabled = toggle.checked;
+                    wrapper.classList.toggle('hidden', !isEnabled);
+                    countInput.disabled = !isEnabled;
+                    validateAttemptCount();
+                }
+
+                toggle.addEventListener('change', updatePityVisibility);
+                attemptsInput.addEventListener('input', () => {
+                    validateAttemptCount();
+                    if (onAttemptsInputCallback) {
+                        onAttemptsInputCallback();
+                    }
+                });
+                
+                updatePityVisibility();
+            }
+
+            function updateActivePresetButton(groupElement, value, valueParser) {
+                const presets = groupElement.querySelectorAll('button');
+                let matchingPreset = false;
+                presets.forEach(button => {
+                    const buttonValue = valueParser ? valueParser(button) : button.dataset.value;
+                    if (buttonValue && buttonValue !== 'custom' && buttonValue === value) {
+                        button.classList.add('active-preset');
+                        matchingPreset = true;
+                    } else {
+                        button.classList.remove('active-preset');
+                    }
+                });
+                const customButton = groupElement.querySelector('button[data-value="custom"]');
+                if (customButton) {
+                    customButton.classList.toggle('active-preset', !matchingPreset);
+                }
+            }
+
+            const updateTargetWinsUI = () => updateActivePresetButton(targetWinsPresets, targetWinsInput.value);
+            const updateCoinPresetUI = () => updateActivePresetButton(coinEfficiencyPresets, coinEfficiencyInput.value);
+            const updateConfidentialPresetUI = () => {
+                const currentValue = `${confidentialCostInput.value}-${confidentialCostCurrencySelect.value}`;
+                updateActivePresetButton(confidentialCostPresets, currentValue);
+            };
+
+            // --- Event Listeners & Initial Setup ---
+            themeToggle.addEventListener('click', handleThemeToggle);
+            showSimulatorBtn.addEventListener('click', () => switchSheet('simulator'));
+            showAnalyzerBtn.addEventListener('click', () => switchSheet('analyzer'));
+            showPriceSettingsBtn.addEventListener('click', () => switchSheet('priceSettings'));
+            saveSettingsBtn.addEventListener('click', savePriceSettings);
+            resetSettingsBtn.addEventListener('click', resetPriceSettings);
+            
+            recruitmentTypeSelect.addEventListener('change', () => {
+                updateAllCosts();
+                updateTotalAttemptsDisplay();
+            });
+
+            totalAttemptsInput.addEventListener('input', updateTotalAttemptsDisplay);
+
+            setupPitySystem(pityToggle, pityInputWrapper, pityCountInput, totalAttemptsInput, attemptsWarning, calculateBtn, updateTotalAttemptsDisplay);
+            setupPitySystem(analyzerPityToggle, analyzerPityInputWrapper, analyzerPityCountInput, analyzerAttemptsInput, analyzerAttemptsWarning, analyzeBtn);
+
+            targetWinsPresets.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.tagName === 'BUTTON' && target.dataset.value) {
+                    const value = target.dataset.value;
+                    if (value === 'custom') {
+                        targetWinsInput.value = '';
+                        targetWinsInput.focus();
+                    } else {
+                        targetWinsInput.value = value;
+                        if (value === '8') {
+                            recruitmentTypeSelect.value = 'standard';
+                            recruitmentTypeSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
+                    updateTargetWinsUI();
+                }
+            });
+            targetWinsInput.addEventListener('input', updateTargetWinsUI);
+
+            const priceSettingInputs = [coinEfficiencyInput, quartzEfficiencyInput, confidentialCostInput, standardCostInput];
+            priceSettingInputs.forEach(input => input.addEventListener('input', updateAllCosts));
+            confidentialCostCurrencySelect.addEventListener('change', updateAllCosts);
+
+            coinEfficiencyPresets.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.tagName === 'BUTTON' && target.dataset.value) {
+                    const value = target.dataset.value;
+                    if (value === 'custom') {
+                        coinEfficiencyInput.value = '';
+                        coinEfficiencyInput.focus();
+                    } else {
+                        coinEfficiencyInput.value = value;
+                    }
+                    updateCoinPresetUI();
+                    updateAllCosts();
+                }
+            });
+            coinEfficiencyInput.addEventListener('input', updateCoinPresetUI);
+
+            confidentialCostPresets.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.tagName === 'BUTTON' && target.dataset.value) {
+                    const value = target.dataset.value;
+                    if (value === 'custom') {
+                        confidentialCostInput.value = '';
+                        confidentialCostInput.focus();
+                    } else {
+                        const [cost, currency] = value.split('-');
+                        confidentialCostInput.value = cost;
+                        confidentialCostCurrencySelect.value = currency;
+                    }
+                    updateConfidentialPresetUI();
+                    updateAllCosts();
+                }
+            });
+            confidentialCostInput.addEventListener('input', updateConfidentialPresetUI);
+            confidentialCostCurrencySelect.addEventListener('change', updateConfidentialPresetUI);
+            
+            calculateBtn.addEventListener('click', handleCalculate);
+            analyzeBtn.addEventListener('click', handleAnalyze);
+
+            // --- Initialize App ---
+            loadInitialTheme();
+            loadPriceSettings();
+            updateTargetWinsUI();
+            updateTotalAttemptsDisplay();
+        });
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
